@@ -1,49 +1,59 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Layout from './components/Layout';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import PractitionerDashboard from './pages/PractitionerDashboard';
 import PatientPortal from './pages/PatientPortal';
-import Login from './pages/Login';
-import Register from './pages/Register';
-// import NotFound from './pages/NotFound'; // Uncomment when you create this
-import './App.css';
+import NotFound from './pages/NotFound';
+import ProtectedRoute from './components/ProtectedRoute';
 
-function App() {
+// This new component lives inside the AuthProvider, so it can access the auth context.
+const AppContent: React.FC = () => {
+  const { user } = useAuth();
+  const userType = user ? user.role : null;
+
+  return (
+    // The required userType prop is now passed to the Layout component.
+    <Layout userType={userType}>
+      <Routes>
+        {/* Public routes that everyone can access */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* General protected routes (must be logged in) */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+        
+        {/* Protected routes specifically for practitioners */}
+        <Route element={<ProtectedRoute requiredRole="practitioner" />}>
+          <Route path="/practitioner-dashboard" element={<PractitionerDashboard />} />
+        </Route>
+
+        {/* Protected routes specifically for patients */}
+        <Route element={<ProtectedRoute requiredRole="patient" />}>
+          <Route path="/patient-portal" element={<PatientPortal />} />
+        </Route>
+
+        {/* Catch-all route for pages that don't exist */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Layout>
+  );
+};
+
+const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
-        <div className="App min-h-screen bg-ayurveda-beige-light">
-          <Routes>
-            {/* Public routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            
-            {/* Protected routes */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/practitioner-dashboard" element={
-              <ProtectedRoute requiredRole="practitioner">
-                <PractitionerDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/patient-portal" element={
-              <ProtectedRoute requiredRole="patient">
-                <PatientPortal />
-              </ProtectedRoute>
-            } />
-            
-            {/* Catch all route - 404 page */}
-            {/* <Route path="*" element={<NotFound />} /> */}
-          </Routes>
-        </div>
+        <AppContent />
       </Router>
     </AuthProvider>
   );
-}
+};
 
 export default App;

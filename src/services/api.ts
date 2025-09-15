@@ -1,78 +1,52 @@
 import { LoginData, RegisterData } from '../types'; // CORRECTED IMPORT PATH
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+// CORRECTED: Point to the new backend port
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
 
-/**
- * A robust, reusable function for making authenticated API requests.
- */
 const request = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
   
-  // --- THIS IS THE FIX for the 'Authorization' error ---
-  // We define headers as a flexible Record type that allows any string key.
+  // FIX: Define headers as a flexible Record type
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
-  // ----------------------------------------------------
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
     
-    // Handle responses that don't have a body (e.g., 204 No Content)
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-        if (!response.ok) throw new Error('Network response was not ok.');
-        return; // Return nothing for non-JSON responses
-    }
-
-    const data = await response.json();
-
     if (!response.ok) {
-      // Use the server's error message if available
-      throw new Error(data.message || 'An unknown API error occurred');
+        const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
+        throw new Error(errorData.message);
     }
 
-    return data;
+    // Handle responses that might not have content (like a 204 status)
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+        return response.json();
+    }
+    return; // Return undefined for non-json responses
+    
   } catch (error) {
-    console.error(`API request to ${endpoint} failed:`, error);
-    throw error; // Re-throw the error to be caught by the calling function
+    console.error(`API Error on ${endpoint}:`, error);
+    throw error;
   }
 };
 
-/**
- * A dedicated module for all authentication-related API calls.
- */
 export const authAPI = {
-  login: (credentials: LoginData) => 
-    request('/auth/login', { 
-      method: 'POST', 
-      body: JSON.stringify(credentials) 
-    }),
-  register: (userData: RegisterData) => 
-    request('/auth/register', { 
-      method: 'POST', 
-      body: JSON.stringify(userData) 
-    }),
+  login: (credentials: LoginData) => request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
+  register: (userData: RegisterData) => request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
   getProfile: () => request('/auth/profile'),
   logout: () => request('/auth/logout', { method: 'POST' }),
 };
 
-/**
- * A default export that bundles all API services for easy importing.
- * Example usage: `import api from './services/api'; api.auth.login(...)`
- */
 const api = {
   request,
   auth: authAPI,
 };
 
 export default api;
-

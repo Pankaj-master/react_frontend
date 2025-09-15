@@ -1,10 +1,10 @@
-// src/components/Layout.tsx
 import React from 'react';
 import Navigation from './Navigation';
 
 interface LayoutProps {
   children: React.ReactNode;
-  userType: 'practitioner' | 'patient';
+  // FIX: Allow userType to be null for logged-out users
+  userType: 'practitioner' | 'patient' | null;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, userType }) => {

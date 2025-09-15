@@ -1,30 +1,28 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect based on user role
-    if (user) {
-      if (user.role === 'practitioner' || user.role === 'admin') {
+    if (!isLoading && user) {
+      // FIX: Removed the check for 'admin' as it's not a defined role.
+      if (user.role === 'practitioner') {
         navigate('/practitioner-dashboard');
       } else if (user.role === 'patient') {
         navigate('/patient-portal');
       }
+    } else if (!isLoading && !user) {
+        // If loading is done and there's still no user, go to login.
+        navigate('/login');
     }
-  }, [user, navigate]);
+  }, [user, isLoading, navigate]);
 
-  return (
-    <div className="min-h-screen bg-ayurveda-beige-light flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-ayurveda-green">Loading...</h1>
-        <p className="text-ayurveda-brown">Redirecting to your dashboard</p>
-      </div>
-    </div>
-  );
+  // Display a loading spinner while checking the user's role
+  return <LoadingSpinner />;
 };
 
 export default Dashboard;

@@ -1,4 +1,3 @@
-// src/components/Navigation.tsx
 import React, { useState } from 'react';
 import { 
   FaUserMd, 
@@ -11,16 +10,32 @@ import {
   FaBars,
   FaTimes
 } from 'react-icons/fa';
+import { useAuth } from '../contexts/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface NavigationProps {
-  userType: 'practitioner' | 'patient';
+  // FIX: Allow userType to be null for logged-out states
+  userType: 'practitioner' | 'patient' | null;
 }
 
 const Navigation: React.FC<NavigationProps> = ({ userType }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  // FIX: If there is no user, do not render the navigation sidebar.
+  // This is for pages like Login and Register.
+  if (!userType) {
+    return null;
+  }
 
   const practitionerMenu = [
-    { name: 'Dashboard', icon: <FaChartLine />, path: '/dashboard' },
+    { name: 'Dashboard', icon: <FaChartLine />, path: '/practitioner-dashboard' },
     { name: 'Patients', icon: <FaUser />, path: '/patients' },
     { name: 'Food Database', icon: <FaUtensils />, path: '/food-db' },
     { name: 'Recipes', icon: <FaBookMedical />, path: '/recipes' },
@@ -28,7 +43,7 @@ const Navigation: React.FC<NavigationProps> = ({ userType }) => {
   ];
 
   const patientMenu = [
-    { name: 'Dashboard', icon: <FaChartLine />, path: '/dashboard' },
+    { name: 'Dashboard', icon: <FaChartLine />, path: '/patient-portal' },
     { name: 'Diet Plan', icon: <FaUtensils />, path: '/diet-plan' },
     { name: 'Wellness', icon: <FaBookMedical />, path: '/wellness' },
     { name: 'Resources', icon: <FaUserMd />, path: '/resources' },
@@ -63,26 +78,26 @@ const Navigation: React.FC<NavigationProps> = ({ userType }) => {
           <ul className="space-y-2">
             {menuItems.map((item, index) => (
               <li key={index}>
-                <a 
-                  href={item.path} 
+                <Link 
+                  to={item.path} 
                   className="flex items-center p-3 rounded hover:bg-ayurveda-green-dark transition-colors"
                 >
                   <span className="mr-3">{item.icon}</span>
                   {item.name}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
         </nav>
         
         <div className="absolute bottom-0 w-full p-4 border-t border-ayurveda-green-dark">
-          <a 
-            href="/logout" 
-            className="flex items-center p-3 rounded hover:bg-ayurveda-green-dark transition-colors"
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center p-3 rounded hover:bg-ayurveda-green-dark transition-colors text-left"
           >
             <span className="mr-3"><FaSignOutAlt /></span>
             Sign Out
-          </a>
+          </button>
         </div>
       </div>
 
