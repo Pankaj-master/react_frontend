@@ -6,7 +6,6 @@ import { Chatbot } from '../components/Chatbot';
 const PractitionerDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('chatbot');
 
-  // Sample data
   const stats = [
     { label: 'Total Patients', value: '24', icon: <FaUsers className="text-ayurveda-green" /> },
     { label: 'Food Items', value: '156', icon: <FaUtensils className="text-ayurveda-green" /> },
@@ -25,7 +24,6 @@ const PractitionerDashboard: React.FC = () => {
       <div className="font-poppins">
         <h1 className="text-2xl font-bold text-ayurveda-green mb-6">Practitioner Dashboard</h1>
         
-        {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, index) => (
             <div key={index} className="bg-white rounded-lg shadow p-4 flex items-center">
@@ -38,7 +36,6 @@ const PractitionerDashboard: React.FC = () => {
           ))}
         </div>
         
-        {/* Tabs */}
         <div className="bg-white rounded-lg shadow mb-6">
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px">
@@ -134,4 +131,3 @@ const PractitionerDashboard: React.FC = () => {
 };
 
 export default PractitionerDashboard;
-
